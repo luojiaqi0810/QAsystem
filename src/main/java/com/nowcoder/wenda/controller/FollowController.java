@@ -51,13 +51,12 @@ public class FollowController {
     EventProducer eventProducer;
 
     //关注用户
-    @RequestMapping(path = {"/followUser"}, method = RequestMethod.POST)
+    @RequestMapping(path = {"/followUser"}, method = {RequestMethod.POST, RequestMethod.GET})
     @ResponseBody
-    public String follow(@RequestParam("userId") int userId) {
+    public String followUser(@RequestParam("userId") int userId) {
         if (hostHolder.getUser() == null) {
             return WendaUtil.getJSONString(999);
         }
-
 
         boolean ret = followService.follow(hostHolder.getUser().getId(), EntityType.ENTITY_USER, userId);
         eventProducer.fireEvent(new EventModel(EventType.FOLLOW)
@@ -65,18 +64,19 @@ public class FollowController {
                 .setEntityId(userId)
                 .setEntityType(EntityType.ENTITY_USER)
                 .setEntityOwnerId(userId));
+        //关注成功则返回0，否则返回1和该用户关注的用户数
         return WendaUtil.getJSONString(ret ? 0 : 1, String.valueOf(followService.getFolloweeCount(hostHolder.getUser().getId(), EntityType.ENTITY_USER)));
     }
 
     //取消关注用户
-    @RequestMapping(path = {"/unfollowUser"}, method = RequestMethod.POST)
+    @RequestMapping(path = {"/unfollowUser"}, method = {RequestMethod.POST})
     @ResponseBody
-    public String unfollow(@RequestParam("userId") int userId) {
+    public String unfollowUser(@RequestParam("userId") int userId) {
         if (hostHolder.getUser() == null) {
             return WendaUtil.getJSONString(999);
         }
 
-        boolean ret = followService.follow(hostHolder.getUser().getId(), EntityType.ENTITY_USER, userId);
+        boolean ret = followService.unfollow(hostHolder.getUser().getId(), EntityType.ENTITY_USER, userId);
         eventProducer.fireEvent(new EventModel(EventType.UNFOLLOW)
                 .setActorId(hostHolder.getUser().getId())
                 .setEntityId(userId)
@@ -87,23 +87,24 @@ public class FollowController {
 
 
     //关注问题
-    @RequestMapping(path = {"/followQuestion"}, method = RequestMethod.POST)
+    @RequestMapping(path = {"/followQuestion"}, method = {RequestMethod.POST})
     @ResponseBody
     public String followQuestion(@RequestParam("questionId") int questionId) {
         if (hostHolder.getUser() == null) {
             return WendaUtil.getJSONString(999);
         }
-        Question question = questionService.selectById(questionId);
+        Question question = questionService.getById(questionId);
         if (question == null) {
             return WendaUtil.getJSONString(1, "问题不存在");
         }
-        boolean ret = followService.follow(hostHolder.getUser().getId(), EntityType.ENTITY_USER, questionId);
+        boolean ret = followService.follow(hostHolder.getUser().getId(), EntityType.ENTITY_QUESTION, questionId);
         eventProducer.fireEvent(new EventModel(EventType.FOLLOW)
                 .setActorId(hostHolder.getUser().getId())
                 .setEntityId(questionId)
                 .setEntityType(EntityType.ENTITY_QUESTION)
                 .setEntityOwnerId(question.getUserId()));
 
+        //在前端页面中，关注问题按钮的下面会显示关注者的头像，关注者的数量等，这些要传递给前端
         Map<String, Object> info = new HashMap<>();
         info.put("headUrl", hostHolder.getUser().getHeadUrl());
         info.put("name", hostHolder.getUser().getName());
@@ -121,11 +122,11 @@ public class FollowController {
         if (hostHolder.getUser() == null) {
             return WendaUtil.getJSONString(999);
         }
-        Question question = questionService.selectById(questionId);
+        Question question = questionService.getById(questionId);
         if (question == null) {
             return WendaUtil.getJSONString(1, "问题不存在");
         }
-        boolean ret = followService.follow(hostHolder.getUser().getId(), EntityType.ENTITY_USER, questionId);
+        boolean ret = followService.unfollow(hostHolder.getUser().getId(), EntityType.ENTITY_QUESTION, questionId);
         eventProducer.fireEvent(new EventModel(EventType.UNFOLLOW)
                 .setActorId(hostHolder.getUser().getId())
                 .setEntityId(questionId)
@@ -143,31 +144,40 @@ public class FollowController {
         return WendaUtil.getJSONString(ret ? 0 : 1, info);
     }
 
-    @RequestMapping(path = {"/user/{uid}/followees"}, method = RequestMethod.POST)
-    public String followees(Model model, @PathVariable("uId") int userId) {
-        List<Integer> followeeIds = followService.getFollowees(userId, EntityType.ENTITY_USER, 10);
+
+
+    //查看这个用户的粉丝
+    @RequestMapping(path = {"/user/{uid}/followers"}, method = RequestMethod.GET)
+    public String followers(Model model, @PathVariable("uid") int userId) {
+        //获取这个用户的粉丝列表
+        List<Integer> followerIds = followService.getFollowers(EntityType.ENTITY_USER, userId, 0,10);
         if (hostHolder.getUser() != null) {
-            model.addAttribute("followees", getUsersinfo(hostHolder.getUser().getId(), followeeIds));
+            model.addAttribute("followers", getUsersInfo(hostHolder.getUser().getId(), followerIds));
         } else {
-            model.addAttribute("followees", getUsersinfo(0, followeeIds));
+            model.addAttribute("followers", getUsersInfo(0, followerIds));
         }
+        model.addAttribute("followerCount", followService.getFollowerCount(EntityType.ENTITY_USER, userId));
+        model.addAttribute("curUser", userService.getUser(userId));
+        return "followers";
+    }
+
+    //查看关注的人
+    @RequestMapping(path = {"/user/{uid}/followees"}, method = RequestMethod.GET)
+    public String followees(Model model, @PathVariable("uid") int userId) {
+        List<Integer> followeeIds = followService.getFollowees(userId, EntityType.ENTITY_USER, 0,10);
+        if (hostHolder.getUser() != null) {
+            model.addAttribute("followees", getUsersInfo(hostHolder.getUser().getId(), followeeIds));
+        } else {
+            model.addAttribute("followees", getUsersInfo(0, followeeIds));
+        }
+        model.addAttribute("followeeCount", followService.getFolloweeCount(userId,EntityType.ENTITY_USER));
+        model.addAttribute("curUser", userService.getUser(userId));
         return "followees";
 
     }
 
-    @RequestMapping(path = {"/user/{uid}/followers"}, method = RequestMethod.POST)
-    public String followers(Model model, @PathVariable("uId") int userId) {
-        List<Integer> followerIds = followService.getFollowers(userId, EntityType.ENTITY_USER, 10);
-        List<Integer> followeeIds = followService.getFollowees(userId, EntityType.ENTITY_USER, 10);
-        if (hostHolder.getUser() != null) {
-            model.addAttribute("followers", getUsersinfo(hostHolder.getUser().getId(), followerIds));
-        } else {
-            model.addAttribute("followers", getUsersinfo(0, followerIds));
-        }
-        return "followers";
-    }
-
-    private List<ViewObject> getUsersinfo(int localUserId, List<Integer> userIds) {
+    //获取我的信息，包括我有多少粉丝，我关注了多少人，我是否关注了这个人
+    private List<ViewObject> getUsersInfo(int localUserId, List<Integer> userIds) {
         List<ViewObject> userInfos = new ArrayList<>();
         for (Integer uid : userIds) {
             User user = userService.getUser(uid);
@@ -176,11 +186,12 @@ public class FollowController {
             }
             ViewObject vo = new ViewObject();
             vo.set("user", user);
+            vo.set("commentCount",commentService.getUserCommentCount(uid));
             vo.set("followerCount", followService.getFollowerCount(EntityType.ENTITY_USER, uid));
-            vo.set("followeeCount", followService.getFolloweeCount(EntityType.ENTITY_USER, uid));
+            vo.set("followeeCount", followService.getFolloweeCount(uid, EntityType.ENTITY_USER));
             if (localUserId != 0) {
                 vo.set("followed", followService.isFollower(localUserId, EntityType.ENTITY_USER, uid));
-            } else {
+            } else {//等于0说明没登陆
                 vo.set("followed", false);
             }
             userInfos.add(vo);
