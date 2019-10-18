@@ -16,6 +16,8 @@ public class RedisKeyUtil {
     //关注对象
     private static String BIZ_FOLLOWEE = "FOLLOWEE";
 
+    private static String BIZ_TIMELINE = "TIMELINE";
+
     public static String getLikeKey(int entityType, int entityId) {
         return BIZ_LIKE + SPLIT + String.valueOf(entityType) + SPLIT + String.valueOf(entityId);
     }
@@ -29,12 +31,16 @@ public class RedisKeyUtil {
     }
 
     //每一个实体的粉丝对应的key，实体可以是用户，也可以是问题
-    public static String getBizFollowerKey(int entityType, int entityId) {
+    public static String getFollowerKey(int entityType, int entityId) {
         return BIZ_FOLLOWER + SPLIT + String.valueOf(entityType) + SPLIT + String.valueOf(entityId);
     }
 
     //用户关注的key
-    public static String getBizFolloweeKey(int userId, int entityType) {
+    public static String getFolloweeKey(int userId, int entityType) {
         return BIZ_FOLLOWEE + SPLIT + String.valueOf(userId) + SPLIT + String.valueOf(entityType);
+    }
+
+    public static String getTimelineKey(int userId) {
+        return BIZ_TIMELINE + SPLIT + String.valueOf(userId);
     }
 }
