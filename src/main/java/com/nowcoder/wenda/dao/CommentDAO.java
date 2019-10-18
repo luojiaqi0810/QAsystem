@@ -33,6 +33,10 @@ public interface CommentDAO {
     int getCommentCount(@Param("entityId") int entityId,
                         @Param("entityType") int entityType);
 
+    //一个用户总共收到过多少条评论
+    @Select({"select count(id) from ", TABLE_NAME, " where user_id=#{userId}"})
+    int getUserCommentCount(int userId);
+
     //对上层来说是删除，对数据库来说就是改变status
     @Update({"update ", TABLE_NAME, " set status=#{status} where id=#{id}"})
     int updateStatus(@Param("id") int id, @Param("status") int status);
