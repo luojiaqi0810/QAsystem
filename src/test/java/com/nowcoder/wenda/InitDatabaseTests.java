@@ -1,13 +1,14 @@
 package com.nowcoder.wenda;
 
-import com.nowcoder.wenda.service.SensitiveService;
-import com.nowcoder.wenda.util.JedisAdapter;
 import com.nowcoder.wenda.dao.QuestionDAO;
 import com.nowcoder.wenda.dao.UserDAO;
 import com.nowcoder.wenda.model.EntityType;
 import com.nowcoder.wenda.model.Question;
 import com.nowcoder.wenda.model.User;
 import com.nowcoder.wenda.service.FollowService;
+import com.nowcoder.wenda.service.SensitiveService;
+import com.nowcoder.wenda.util.JedisAdapter;
+import com.nowcoder.wenda.util.WendaUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +24,7 @@ import java.util.Random;
 @SpringApplicationConfiguration(classes = WendaApplication.class)
 
 
-//@Sql("/init-schema.sql")
+@Sql("/init-schema.sql")
 public class InitDatabaseTests {
     @Autowired
     UserDAO userDAO;
@@ -56,7 +57,7 @@ public class InitDatabaseTests {
                 followService.follow(j, EntityType.ENTITY_USER, i);
             }
 
-            user.setPassword("newpassword");
+            user.setPassword(WendaUtil.MD5("111111" + user.getSalt()));
             userDAO.updatePassword(user);
 
             Question question = new Question();
@@ -72,7 +73,7 @@ public class InitDatabaseTests {
 
         Assert.assertEquals("newpassword", userDAO.selectById(1).getPassword());
         //userDAO.deleteById(1);
-        //Assert.assertNull(userDAO.selectById(1));
+        //Assert.assertNull(userDAO.getById(1));
     }
 
     @Test
