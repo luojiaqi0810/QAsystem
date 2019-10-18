@@ -49,6 +49,7 @@ public class FeedHandler implements EventHandler {
         Feed feed = new Feed();
         feed.setCreatedDate(new Date());
         feed.setUserId(model.getActorId());
+        feed.setType(model.getType().getValue());
         feed.setData(buildFeedData(model));
         if (feed.getData() == null) {
             return;
