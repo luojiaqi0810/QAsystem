@@ -22,7 +22,7 @@ public interface QuestionDAO {
     int addQuestion(Question question);
 
     @Select({"select ", SELECT_FIELDS, " from ", TABLE_NAME, " where id=#{id}"})
-    Question selectById(int id);
+    Question getById(int id);
 
 
     List<Question> selectLatestQuestions(@Param("userId") int userId,
