@@ -5,7 +5,7 @@
     <sql id="table">feed</sql>
     <sql id="selectFields">id, created_date,user_id, data, type
     </sql>
-    <select id="selectUserFeeds" resultType="com.nowcoder.model.Feed">
+    <select id="selectUserFeeds" resultType="com.nowcoder.wenda.model.Feed">
         SELECT
         <include refid="selectFields"/>
         FROM
