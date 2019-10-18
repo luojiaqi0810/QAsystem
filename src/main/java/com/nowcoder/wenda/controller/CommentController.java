@@ -1,5 +1,8 @@
 package com.nowcoder.wenda.controller;
 
+import com.nowcoder.wenda.async.EventModel;
+import com.nowcoder.wenda.async.EventProducer;
+import com.nowcoder.wenda.async.EventType;
 import com.nowcoder.wenda.model.Comment;
 import com.nowcoder.wenda.model.EntityType;
 import com.nowcoder.wenda.model.HostHolder;
@@ -34,6 +37,9 @@ public class CommentController {
 
     @Autowired
     QuestionService questionService;
+
+    @Autowired
+    EventProducer eventProducer;
     //添加对问题的评论
     @RequestMapping(path = {"/addComment"}, method = RequestMethod.POST)
     public String addComment(@RequestParam("questionId") int questionId,
@@ -54,6 +60,10 @@ public class CommentController {
 
             int count = commentService.getCommentCount(comment.getEntityId(), comment.getEntityType());
             questionService.updateCommentCount(comment.getEntityId(), count);
+
+            eventProducer.fireEvent(new EventModel(EventType.COMMENT).setActorId(comment.getUserId())
+                    .setEntityId(questionId));
+
         } catch (Exception e) {
             LOGGER.error("增加评论失败" + e.getMessage());
 
