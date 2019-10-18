@@ -28,10 +28,12 @@ public class RedisKeyUtil {
         return BIZ_EVENTQUEUE;
     }
 
+    //每一个实体的粉丝对应的key，实体可以是用户，也可以是问题
     public static String getBizFollowerKey(int entityType, int entityId) {
         return BIZ_FOLLOWER + SPLIT + String.valueOf(entityType) + SPLIT + String.valueOf(entityId);
     }
 
+    //用户关注的key
     public static String getBizFolloweeKey(int userId, int entityType) {
         return BIZ_FOLLOWEE + SPLIT + String.valueOf(userId) + SPLIT + String.valueOf(entityType);
     }
