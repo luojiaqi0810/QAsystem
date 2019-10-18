@@ -32,8 +32,8 @@ public class FollowService {
      * @return 是否关注成功
      */
     public boolean follow(int userId, int entityType, int entityId) {
-        String followerKey = RedisKeyUtil.getBizFollowerKey(entityType, entityId);
-        String followeeKey = RedisKeyUtil.getBizFolloweeKey(userId, entityType);
+        String followerKey = RedisKeyUtil.getFollowerKey(entityType, entityId);
+        String followeeKey = RedisKeyUtil.getFolloweeKey(userId, entityType);
         Date date = new Date();
         Jedis jedis = jedisAdapter.getJedis();
         Transaction tx = jedisAdapter.multi(jedis);
@@ -45,8 +45,8 @@ public class FollowService {
 
     //取消关注
     public boolean unfollow(int userId, int entityType, int entityId) {
-        String followerKey = RedisKeyUtil.getBizFollowerKey(entityType, entityId);
-        String followeeKey = RedisKeyUtil.getBizFolloweeKey(userId, entityType);
+        String followerKey = RedisKeyUtil.getFollowerKey(entityType, entityId);
+        String followeeKey = RedisKeyUtil.getFolloweeKey(userId, entityType);
         Date date = new Date();
         Jedis jedis = jedisAdapter.getJedis();
         Transaction tx = jedisAdapter.multi(jedis);
@@ -64,12 +64,12 @@ public class FollowService {
      * @return
      */
     public List<Integer> getFollowers(int entityType, int entityId, int count) {
-        String followerKey = RedisKeyUtil.getBizFollowerKey(entityType, entityId);
+        String followerKey = RedisKeyUtil.getFollowerKey(entityType, entityId);
         return getIdsFromSet(jedisAdapter.zrevrange(followerKey, 0, count));
     }
 
     public List<Integer> getFollowers(int entityType, int entityId, int offset, int count) {
-        String followerKey = RedisKeyUtil.getBizFollowerKey(entityType, entityId);
+        String followerKey = RedisKeyUtil.getFollowerKey(entityType, entityId);
         return getIdsFromSet(jedisAdapter.zrevrange(followerKey, offset, offset+count));
     }
 
@@ -81,24 +81,24 @@ public class FollowService {
      * @return
      */
     public List<Integer> getFollowees(int userId, int entityType, int count) {
-        String followeeKey = RedisKeyUtil.getBizFolloweeKey(userId, entityType);
+        String followeeKey = RedisKeyUtil.getFolloweeKey(userId, entityType);
         return getIdsFromSet(jedisAdapter.zrevrange(followeeKey, 0, count));
     }
 
     public List<Integer> getFollowees(int userId, int entityType, int offset, int count) {
-        String followeeKey = RedisKeyUtil.getBizFolloweeKey(userId, entityType);
+        String followeeKey = RedisKeyUtil.getFolloweeKey(userId, entityType);
         return getIdsFromSet(jedisAdapter.zrevrange(followeeKey, offset, offset+count));
     }
 
     //获取一个实体的被关注数
     public long getFollowerCount(int entityType, int entityId) {
-        String followerKey = RedisKeyUtil.getBizFollowerKey(entityType, entityId);
+        String followerKey = RedisKeyUtil.getFollowerKey(entityType, entityId);
         return jedisAdapter.zcard(followerKey);
     }
 
     //获取一个用户的关注数
     public long getFolloweeCount(int userId, int entityType) {
-        String followeeKey = RedisKeyUtil.getBizFolloweeKey(userId, entityType);
+        String followeeKey = RedisKeyUtil.getFolloweeKey(userId, entityType);
         return jedisAdapter.zcard(followeeKey);
     }
 
@@ -114,7 +114,7 @@ public class FollowService {
 
     //判断一个用户是否关注了一个实体
     public boolean isFollower(int userId, int entityType, int entityId) {
-        String followerKey = RedisKeyUtil.getBizFollowerKey(entityType, entityId);
+        String followerKey = RedisKeyUtil.getFollowerKey(entityType, entityId);
         return jedisAdapter.zscore(followerKey, String.valueOf(userId)) != null;
     }
 }
