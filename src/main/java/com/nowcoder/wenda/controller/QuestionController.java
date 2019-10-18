@@ -1,10 +1,7 @@
 package com.nowcoder.wenda.controller;
 
 import com.nowcoder.wenda.model.*;
-import com.nowcoder.wenda.service.CommentService;
-import com.nowcoder.wenda.service.LikeService;
-import com.nowcoder.wenda.service.QuestionService;
-import com.nowcoder.wenda.service.UserService;
+import com.nowcoder.wenda.service.*;
 import com.nowcoder.wenda.util.WendaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +39,9 @@ public class QuestionController {
     @Autowired
     LikeService likeService;
 
+    @Autowired
+    FollowService followService;
+
     /**
      * 增加问题
      * @param title
@@ -76,10 +76,11 @@ public class QuestionController {
     //问题详情页
     @RequestMapping(value = {"/question/{qid}"})
     public String questionDetail(Model model, @PathVariable("qid") int qid) {
-        Question question = questionService.selectById(qid);
+        Question question = questionService.getById(qid);
         model.addAttribute("question", question);
         model.addAttribute("user", userService.getUser(question.getUserId()));
 
+        //评论点赞
         List<Comment> commentList = commentService.getCommentByEntity(qid, EntityType.ENTITY_QUESTION);
         List<ViewObject> comments = new ArrayList<>();
         for (Comment comment : commentList) {
@@ -97,6 +98,31 @@ public class QuestionController {
             comments.add(vo);
         }
         model.addAttribute("comments", comments);
+
+
+        //关注问题
+        List<ViewObject> followUsers = new ArrayList<>();
+        //获取关注此问题的用户的信息
+        List<Integer> users = followService.getFollowers(EntityType.ENTITY_QUESTION, qid, 20);
+        for (Integer userId : users) {
+            ViewObject vo = new ViewObject();
+            User u = userService.getUser(userId);
+            if (u == null) {
+                continue;
+            }
+            vo.set("name", u.getName());
+            vo.set("headUrl", u.getHeadUrl());
+            vo.set("id", u.getId());
+            followUsers.add(vo);
+        }
+        model.addAttribute("followUsers", followUsers);
+
+        //看看当前用户是否关注了这个问题
+        if (hostHolder.getUser() != null) {
+            model.addAttribute("followed", followService.isFollower(hostHolder.getUser().getId(), EntityType.ENTITY_QUESTION, qid));
+        } else {
+            model.addAttribute("followed", false);
+        }
         return "detail";
     }
 }
