@@ -9,8 +9,11 @@ import com.nowcoder.wenda.model.Feed;
 import com.nowcoder.wenda.model.Question;
 import com.nowcoder.wenda.model.User;
 import com.nowcoder.wenda.service.FeedService;
+import com.nowcoder.wenda.service.FollowService;
 import com.nowcoder.wenda.service.QuestionService;
 import com.nowcoder.wenda.service.UserService;
+import com.nowcoder.wenda.util.JedisAdapter;
+import com.nowcoder.wenda.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +39,11 @@ public class FeedHandler implements EventHandler {
     @Autowired
     FeedService feedService;
 
+    @Autowired
+    FollowService followService;
+
+    @Autowired
+    JedisAdapter jedisAdapter;
 
     private String buildFeedData(EventModel model) {
         Map<String, String> map = new HashMap<>();
@@ -81,6 +89,16 @@ public class FeedHandler implements EventHandler {
             return;
         }
         feedService.addFeed(feed);
+
+        //存储在redis
+        //给事件的粉丝推，这里取得数量写的是Integer.MAX_VALUE，因为现在数据量不大，所以都取出来了
+        //如果数据量大，可以一段一段取，用offset分开
+        List<Integer> followers = followService.getFollowers(EntityType.ENTITY_USER, model.getActorId(), Integer.MAX_VALUE);
+        followers.add(0);
+        for (int follwer : followers) {
+            String timelineKey = RedisKeyUtil.getTimelineKey(follwer);
+            jedisAdapter.lpush(timelineKey, String.valueOf(feed.getId()));
+        }
     }
 
 
