@@ -9,7 +9,6 @@ import com.nowcoder.wenda.model.Feed;
 import com.nowcoder.wenda.model.Question;
 import com.nowcoder.wenda.model.User;
 import com.nowcoder.wenda.service.FeedService;
-import com.nowcoder.wenda.service.MessageService;
 import com.nowcoder.wenda.service.QuestionService;
 import com.nowcoder.wenda.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +26,6 @@ import java.util.*;
 @Component
 public class FeedHandler implements EventHandler {
 
-    //当收到关注的时候，就给对方发一个站内信，所以需要用到MessageService
-    @Autowired
-    MessageService messageService;
 
     @Autowired
     UserService userService;
@@ -40,32 +36,20 @@ public class FeedHandler implements EventHandler {
     @Autowired
     FeedService feedService;
 
-    @Override
-    public void doHandle(EventModel model) {
-        //方便测试
-        Random r = new Random();
-        model.setActorId(1 + r.nextInt(10));
-
-        Feed feed = new Feed();
-        feed.setCreatedDate(new Date());
-        feed.setUserId(model.getActorId());
-        feed.setType(model.getType().getValue());
-        feed.setData(buildFeedData(model));
-        if (feed.getData() == null) {
-            return;
-        }
-        feedService.addFeed(feed);
-    }
 
     private String buildFeedData(EventModel model) {
         Map<String, String> map = new HashMap<>();
+        // 触发用户是通用的
         User actor = userService.getUser(model.getActorId());
         if (actor == null) {
             return null;
         }
         map.put("userId", String.valueOf(actor.getId()));
-        map.put("userHead", String.valueOf(actor.getHeadUrl()));
-        map.put("userName", String.valueOf(actor.getName()));
+        map.put("userHead", actor.getHeadUrl());
+        map.put("userName", actor.getName());
+
+        //调式查看用
+        EventType e = model.getType();
 
         //评论了一个问题或关注了一个问题
         if (model.getType() == EventType.COMMENT ||
@@ -75,10 +59,28 @@ public class FeedHandler implements EventHandler {
                 return null;
             }
             map.put("questionId", String.valueOf(question.getId()));
-            map.put("questionTitle", String.valueOf(question.getTitle()));
+            map.put("questionTitle", question.getTitle());
             return JSONObject.toJSONString(map);
         }
         return null;
+    }
+
+    @Override
+    public void doHandle(EventModel model) {
+        //方便测试，把model的userId随机一下
+        Random r = new Random();
+        model.setActorId(1 + r.nextInt(10));
+
+        // 构造一个新鲜事
+        Feed feed = new Feed();
+        feed.setCreatedDate(new Date());
+        feed.setUserId(model.getActorId());
+        feed.setType(model.getType().getValue());//注意这里是getType也就是事件类型，而不是getEntityType
+        feed.setData(buildFeedData(model));
+        if (feed.getData() == null) {// 不支持的feed
+            return;
+        }
+        feedService.addFeed(feed);
     }
 
 
