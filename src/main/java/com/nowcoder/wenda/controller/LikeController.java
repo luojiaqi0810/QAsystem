@@ -57,7 +57,7 @@ public class LikeController {
                     .setExt("questionId", String.valueOf(comment.getEntityId())));
             likeCount = likeService.like(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
         } else  {//已经点了赞，再点就取消
-            likeCount = likeService.undolike(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+            likeCount = likeService.undoLike(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
         }
         return WendaUtil.getJSONString(0, String.valueOf(likeCount));
     }
@@ -71,7 +71,14 @@ public class LikeController {
             return WendaUtil.getJSONString(999);
         }
 
-        long likeCount = likeService.disLike(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+        int likeStatus = likeService.getLikeStatus(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+        long likeCount;
+        if (likeStatus == 0 || likeStatus == 1) {
+            likeCount = likeService.disLike(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+        } else {
+            likeCount = likeService.undoDisLike(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+        }
+
         return WendaUtil.getJSONString(0, String.valueOf(likeCount));
     }
 
