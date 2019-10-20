@@ -56,7 +56,7 @@ public class SearchController {
 
         try {
             // 获取查询结果列表，这里高亮前后缀加的是<em>，也可以加别的
-            List<Question> questionList = searchService.searchQuestion(keyword, offset, count, "<em>", "</em>");
+            List<Question> questionList = searchService.searchQuestion(keyword, offset, count, "<p style=\"color:red\">", "</p>");
 
             // 跟首页/index的不同在于首页的question是从数据库读取的，这里是从solr读取的
             // solr里获取的question只设置了id，questionId，questionContent
