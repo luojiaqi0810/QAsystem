@@ -1,8 +1,6 @@
 package com.nowcoder.wenda.controller;
 
-import com.nowcoder.wenda.async.EventModel;
 import com.nowcoder.wenda.async.EventProducer;
-import com.nowcoder.wenda.async.EventType;
 import com.nowcoder.wenda.service.UserService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -97,12 +95,13 @@ public class LoginController {
                 cookie.setPath("/");
                 response.addCookie(cookie);
 
-                //每次用户登陆后，actorId即尝试登陆用户的id，username和email都是指该用户的
-                eventProducer.fireEvent(new EventModel(EventType.LOGIN)
-                                .setExt("email","luojiaqichn@163.com")
-                                .setExt("username", username)
-                                .setActorId((int) map.get("userId")));
-
+                /**
+                 //每次用户登陆后，actorId即尝试登陆用户的id，username和email都是指该用户的
+                 eventProducer.fireEvent(new EventModel(EventType.LOGIN)
+                 .setExt("email","luojiaqichn@163.com")
+                 .setExt("username", username)
+                 .setActorId((int) map.get("userId")));
+                 */
 
 
                 if (StringUtils.isNotBlank(next)) {
@@ -121,7 +120,7 @@ public class LoginController {
 
     @RequestMapping(path = {"/reglogin"}, method = {RequestMethod.GET})
     public String regloginPage(Model model,
-                      @RequestParam(value = "next", required = false) String next) {
+                               @RequestParam(value = "next", required = false) String next) {
         model.addAttribute("next", next);
         return "login";
     }
