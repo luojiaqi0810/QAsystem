@@ -78,6 +78,7 @@ public class SearchController {
                 vos.add(vo);
             }
             model.addAttribute("vos", vos);
+            model.addAttribute("keyword", keyword);
         } catch (Exception e) {
             LOGGER.error("搜索评论失败" + e.getMessage());
 
