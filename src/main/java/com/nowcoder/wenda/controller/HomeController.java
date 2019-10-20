@@ -48,6 +48,9 @@ public class HomeController {
         List<ViewObject> vos = new ArrayList<>();
         for (Question question : questionList) {
             ViewObject vo = new ViewObject();
+            if (question.getContent().length() > 100) {
+                question.setContent(question.getContent().substring(0, 100)+"<br> ......");
+            }
             vo.set("question", question);
             vo.set("followCount", followService.getFollowerCount(EntityType.ENTITY_QUESTION, question.getId()));
             vo.set("user", userService.getUser(question.getUserId()));
@@ -61,6 +64,7 @@ public class HomeController {
                         @RequestParam(value = "pop", defaultValue = "0") int pop) {
         model.addAttribute("vos", getQuestions(0, pop * 10, 10));
         model.addAttribute("pop", pop * 10);
+        model.addAttribute("vos", getQuestions(0, pop*10, 10));
         return "index";
     }
 
