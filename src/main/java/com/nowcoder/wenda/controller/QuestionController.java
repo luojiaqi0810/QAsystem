@@ -1,5 +1,8 @@
 package com.nowcoder.wenda.controller;
 
+import com.nowcoder.wenda.async.EventModel;
+import com.nowcoder.wenda.async.EventProducer;
+import com.nowcoder.wenda.async.EventType;
 import com.nowcoder.wenda.model.*;
 import com.nowcoder.wenda.service.*;
 import com.nowcoder.wenda.util.WendaUtil;
@@ -26,21 +29,19 @@ public class QuestionController {
 
     @Autowired
     QuestionService questionService;
-
     @Autowired
     HostHolder hostHolder;
-
     @Autowired
     UserService userService;
-
     @Autowired
     CommentService commentService;
-
     @Autowired
     LikeService likeService;
-
     @Autowired
     FollowService followService;
+    @Autowired
+    EventProducer eventProducer;
+
 
     /**
      * 增加问题
@@ -65,6 +66,12 @@ public class QuestionController {
                 question.setUserId(hostHolder.getUser().getId());
             }
             if (questionService.addQuestion(question) > 0) {
+                //增加问题成功时发一个异步事件，用于建立solr索引
+                eventProducer.fireEvent(new EventModel(EventType.ADD_QUESTION)
+                        .setActorId(question.getUserId())
+                        .setEntityId(question.getId())
+                        .setExt("title", question.getTitle())
+                        .setExt("content", question.getContent()));
                 return WendaUtil.getJSONString(0);
             }
         } catch (Exception e) {

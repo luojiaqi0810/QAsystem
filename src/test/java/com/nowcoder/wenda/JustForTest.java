@@ -7,6 +7,8 @@ package com.nowcoder.wenda;
  */
 public class JustForTest {
     public static void main(String[] args) {
+        System.out.println("Aa".hashCode());
+        System.out.println("BB".hashCode());
         String s1 = "200";
         String s2 = "320";
         System.out.println(multiply(s1, s2));
