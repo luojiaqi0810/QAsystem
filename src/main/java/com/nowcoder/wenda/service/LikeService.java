@@ -46,6 +46,12 @@ public class LikeService {
         return jedisAdapter.scard(likeKey);
     }
 
+    //取消点赞
+    public long undolike(int userId, int entityType, int entityId) {
+        String likeKey = RedisKeyUtil.getLikeKey(entityType,entityId);
+        jedisAdapter.srem(likeKey, String.valueOf(userId));
+        return jedisAdapter.scard(likeKey);
+    }
 
     public long disLike(int userId, int entityType, int entityId) {
         String disLikeKey = RedisKeyUtil.getDisLikeKey(entityType,entityId);

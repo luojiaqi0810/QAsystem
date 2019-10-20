@@ -45,15 +45,20 @@ public class LikeController {
             return WendaUtil.getJSONString(999);
         }
 
-        Comment comment = commentService.getCommentById(commentId);
-        eventProducer.fireEvent(new EventModel(EventType.LIKE)
-                .setActorId(hostHolder.getUser().getId())
-                .setEntityId(commentId)
-                .setEntityType(EntityType.ENTITY_COMMENT)
-                .setEntityOwnerId(comment.getUserId())
-                .setExt("questionId", String.valueOf(comment.getEntityId())));
-
-        long likeCount = likeService.like(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+        int likeStatus = likeService.getLikeStatus(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+        long likeCount;
+        if (likeStatus == 0 || likeStatus == -1) { //没有点赞的情况：1.都没点，2.点了踩
+            Comment comment = commentService.getCommentById(commentId);
+            eventProducer.fireEvent(new EventModel(EventType.LIKE)
+                    .setActorId(hostHolder.getUser().getId())
+                    .setEntityId(commentId)
+                    .setEntityType(EntityType.ENTITY_COMMENT)
+                    .setEntityOwnerId(comment.getUserId())
+                    .setExt("questionId", String.valueOf(comment.getEntityId())));
+            likeCount = likeService.like(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+        } else  {//已经点了赞，再点就取消
+            likeCount = likeService.undolike(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+        }
         return WendaUtil.getJSONString(0, String.valueOf(likeCount));
     }
 
