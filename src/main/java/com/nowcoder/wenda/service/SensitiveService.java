@@ -149,10 +149,14 @@ public class SensitiveService implements InitializingBean {
     }
 
 
-    public static void main(String[] args) {
+    //打包时去掉多余main函数，故改名
+    public static void miain(String[] args) {
         SensitiveService s = new SensitiveService();
         s.addWord("色情");
         s.addWord("赌博");
         System.out.println(s.filter("hi 你好💣色💣情"));
+        System.out.println(s.filter("hi 你好色_情"));
+        System.out.println(s.filter("hi 你好色h情"));
+
     }
 }
