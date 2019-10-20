@@ -73,7 +73,7 @@ public class SearchController {
 
                 ViewObject vo = new ViewObject();
                 vo.set("question", q);
-                vo.set("followcount", followService.getFollowerCount(EntityType.ENTITY_QUESTION, q.getId()));
+                vo.set("followCount", followService.getFollowerCount(EntityType.ENTITY_QUESTION, q.getId()));
                 vo.set("user", userService.getUser(q.getUserId()));
                 vos.add(vo);
             }
