@@ -53,7 +53,7 @@ public class SearchService {
         query.setHighlightSimplePre(hlPre);//设置高亮前缀
         query.setHighlightSimplePost(hlPos);//设置高亮后缀
         //hl.f1是solr高亮的设置，在dashboard上有，下面意思是对title和content高亮
-        query.set("hl.fl", QUESTION_CONTENT_FIELD + "," + QUESTION_CONTENT_FIELD);
+        query.set("hl.fl", QUESTION_TITLE_FIELD + "," + QUESTION_CONTENT_FIELD);
 
         // 执行query请求
         QueryResponse response = client.query(query);
